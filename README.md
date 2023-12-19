@@ -1,1 +1,1 @@
-# Java-deploy-cicd-action
+# Java-deploy-cicd-actions
