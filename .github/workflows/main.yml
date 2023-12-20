@@ -1,1 +1,90 @@
+name: JavaBankingActions
+on: workflow_dispatch
+env:
+  AWS_REGION: us-east-1
+  RDS_ENDPOINTS: javademoapp
+  DB_NAME: javadb
+  DB_USER: admin
+  DB_PASS: admin
+  EMAIL_USER: admin
+  EMAIL_PASS: admin
+  SONAR_URL: https://sonarcloud.io
 
+jobs:
+  Run-Test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Run Maven Test
+        run: mvn -f testPom.xml clean test
+
+      - name: Checkstyle Analysis
+        run: mvn -f testPom.xml checkstyle:checkstyle
+
+      # Setup sonar-scanner
+      - name: Setup SonarQube
+        uses: warchant/setup-sonar-scanner@v7
+
+      # Run sonar-scanner
+      - name: SonarQube Scan
+        run: sonar-scanner
+            -Dsonar.host.url=${{ env.SONAR_URL }}
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+            -Dsonar.sources=src/
+            -Dsonar.junit.reportsPath=target/surefire-reports/
+            -Dsonar.junit.reportsPath=target/jacoco.exec
+            -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
+            -Dsonar.java.binaries=target/test-classes/com/opeyemi/banking/
+
+      # Check the Quality Gate status.
+      - name: SonarQube Quality Gate check
+        id: sonarqube-quality-gate-check
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        # Force to fail step after specific time.
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ env.SONAR_URL }} #OPTIONAL
+
+  build:
+    needs: Run-Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Copy Backend Connection Credentials
+        run: |
+          mv configProperties src/main/resources/application.properties
+
+      - name: Run sed command to update backend credentials
+        run: |
+          sed -i 's/^spring.datasource.url.*/spring.datasource.url=jdbc:mysql\:\/\/${{env.RDS_ENDPOINTS}}\/${{env.DB_NAME}}/' src/main/resources/application.properties
+          sed -i 's/^spring.datasource.username.*/spring.datasource.username=${{env.DB_USER}}/' src/main/resources/application.properties
+          sed -i 's/^spring.datasource.password.*/spring.datasource.password=${{env.DB_PASS}}/' src/main/resources/application.properties
+          sed -i 's/^spring.mail.username.*/spring.mail.username=${{env.EMAIL_USER}}/' src/main/resources/application.properties
+          sed -i 's/^spring.mail.password.*/spring.mail.password=${{env.EMAIL_PASS}}/' src/main/resources/application.properties
+          echo
+          echo
+          cat src/main/resources/application.properties
+
+      # - name: Build with Maven
+      #   run: mvn -B package -DskipTests -f pom.xml
+      
+      # - name: Upload Maven Artifact
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: JavaDemoBanking_Artifacts
+      #     path: target/banking-v1.jar
