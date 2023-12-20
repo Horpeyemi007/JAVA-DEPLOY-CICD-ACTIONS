@@ -2,12 +2,8 @@ name: JavaBankingActions
 on: workflow_dispatch
 env:
   AWS_REGION: us-east-1
-  RDS_ENDPOINTS: javademoapp
-  DB_NAME: javadb
   DB_USER: admin
-  DB_PASS: admin
-  EMAIL_USER: admin
-  EMAIL_PASS: admin
+  EMAIL_USER: Opeyemidevops@gmail.com
   SONAR_URL: https://sonarcloud.io
 
 jobs:
@@ -71,42 +67,42 @@ jobs:
 
       - name: Run sed command to update backend credentials
         run: |
-          sed -i 's/^spring.datasource.url.*/spring.datasource.url=jdbc:mysql\:\/\/${{env.RDS_ENDPOINTS}}\:3306\/${{env.DB_NAME}}/' src/main/resources/application.properties
+          sed -i 's/^spring.datasource.url.*/spring.datasource.url=jdbc:mysql\:\/\/${{secrets.RDS_ENDPOINTS}}\:3306\/${{secrets.DB_NAME}}/' src/main/resources/application.properties
           sed -i 's/^spring.datasource.username.*/spring.datasource.username=${{env.DB_USER}}/' src/main/resources/application.properties
-          sed -i 's/^spring.datasource.password.*/spring.datasource.password=${{env.DB_PASS}}/' src/main/resources/application.properties
+          sed -i 's/^spring.datasource.password.*/spring.datasource.password=${{secrets.DB_PASS}}/' src/main/resources/application.properties
           sed -i 's/^spring.mail.username.*/spring.mail.username=${{env.EMAIL_USER}}/' src/main/resources/application.properties
-          sed -i 's/^spring.mail.password.*/spring.mail.password=${{env.EMAIL_PASS}}/' src/main/resources/application.properties
+          sed -i 's/^spring.mail.password.*/spring.mail.password=${{secrets.DEMO_EMAIL_PASS}}/' src/main/resources/application.properties
           echo
           echo
           cat src/main/resources/application.properties
 
-#       - name: Build with Maven
-#         run: mvn -B package -DskipTests -f pom.xml
+      - name: Build with Maven
+        run: mvn -B package -DskipTests -f pom.xml
       
-#       - name: Upload Maven Artifact
-#         uses: actions/upload-artifact@v3
-#         with:
-#           name: JavaDemoBanking_Artifacts
-#           path: target/banking-v1.jar
+      - name: Upload Maven Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: JavaDemoBanking_Artifacts
+          path: target/banking-v1.jar
 
-#   deploy:
-#     needs: build
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v4
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-#       - name: Download Artifacts
-#         uses: actions/download-artifact@v3
-#         with:
-#           name: JavaDemoBanking_Artifacts
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: JavaDemoBanking_Artifacts
 
-#       - name: Deploy to EB
-#         uses: einaregilsson/beanstalk-deploy@v21
-#         with:
-#           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#           application_name: bank-beanstalk-app
-#           environment_name: bank-beanstalk-env
-#           version_label: ${{github.run_number}}
-#           region: ${{env.AWS_REGION}}
-#           deployment_package: banking-v1.jar
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v21
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: bank-beanstalk-app
+          environment_name: bank-beanstalk-env
+          version_label: ${{github.run_number}}
+          region: ${{env.AWS_REGION}}
+          deployment_package: banking-v1.jar
