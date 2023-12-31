@@ -17,6 +17,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      # Run Test Using a different Pom.xml that contail an H2 in memory database
       - name: Run Maven Test
         run: mvn -f testPom.xml clean test
 
