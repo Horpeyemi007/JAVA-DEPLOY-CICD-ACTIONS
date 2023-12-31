@@ -71,7 +71,7 @@ public class UserController {
       return "redirect:/user/login";
     }
   }
-  // Handler to shou the User dashboard
+  // Handler to show the User dashboard
   @GetMapping("user/{Id}/dashboard")
   public String dashboardPage(User user, Model model, @PathVariable(required = false) Long Id){
     // If user id not found - return empty - else return the user details
