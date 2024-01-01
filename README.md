@@ -13,7 +13,7 @@
   7. SONAR_PROJECT_KEY
   8. SONAR_TOKEN
 
-* ### Make sure you already have your sonar cloud project set up and apply quality threashold on it.
+* ### Make sure you already have your sonar cloud project set up and apply quality gate threashold on it.
 
 
 GoodLuck...
