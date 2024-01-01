@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import com.opeyemi.banking.entity.Transactions;
 import com.opeyemi.banking.entity.User;
-import com.opeyemi.banking.helpers.EmailSender;
 import com.opeyemi.banking.helpers.Helpers;
 import com.opeyemi.banking.helpers.TransactionRequest;
 import com.opeyemi.banking.helpers.UserSetup;
@@ -24,7 +23,6 @@ public class UserServiceImp implements UserService{
   
   UserRepository userRepository;
   TransactionRepository transactionRepository;
-  EmailServices emailServices;
 
   @Override
   public Boolean createUser(UserSetup request){
@@ -46,15 +44,7 @@ public class UserServiceImp implements UserService{
       .build();
 
     // Save the new user in the database..
-    User savedUser = userRepository.save(newUser);
-    // Build and Send email notification to the registered user
-    EmailSender emailSender = EmailSender.builder()
-      .recipient(savedUser.getEmail())
-      .subject("JAVA DEMO BANK ACCOUNT CREATION!")
-      .message(Helpers.emailMessageContent(savedUser.getFirstName(), savedUser.getLastName(), savedUser.getAccountNumber()))      
-      .build();
-
-    emailServices.sendEmail(emailSender);
+    userRepository.save(newUser);
 
     return true;
 
