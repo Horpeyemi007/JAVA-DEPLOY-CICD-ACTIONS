@@ -16,5 +16,5 @@
 * ### Make sure you already have your sonar cloud project set up and apply quality threashold on it.
 
 
-GoodLuck..
+GoodLuck...
 
